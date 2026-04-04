@@ -125,10 +125,14 @@ export class Service{
     }
 
     getFilePreview(fileId){
-        return this.bucket.getFilePreview(
+        // Changed to getFileView instead of getFilePreview because current Appwrite Free-Tier 
+        // plans block the /preview endpoint (throws HTTP 403 Image transformations blocked error).
+        const filePreview = this.bucket.getFileView(
             conf.appwriteBucketId,
             fileId
-        )
+        );
+        // Extracts the primitive string URL safely whether the SDK returns a URL object or a raw string
+        return filePreview.href ? filePreview.href : String(filePreview);
     }
 }
 

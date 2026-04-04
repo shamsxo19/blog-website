@@ -6,19 +6,17 @@ function PostCard({$id, title, featuredImage}) {
     
   return (
     <Link to={`/post/${$id}`}>
-        <div className='w-full bg-gray-100 rounded-xl p-4'>
-            <div className='w-full justify-center mb-4'>
+        <div className='bg-white rounded-xl border border-slate-100 shadow-sm overflow-hidden transition-all duration-200 hover:shadow-md hover:-translate-y-0.5'>
+            <div className='w-full aspect-video overflow-hidden'>
                 <img src={appwriteService.getFilePreview(featuredImage)} alt={title}
-                className='rounded-xl' />
-
+                className='w-full h-full object-cover' />
             </div>
-            <h2
-            className='text-xl font-bold'
-            >{title}</h2>
+            <div className='p-4'>
+                <h2 className='text-base font-semibold text-slate-800 line-clamp-2'>{title}</h2>
+            </div>
         </div>
     </Link>
   )
 }
-
 
 export default PostCard

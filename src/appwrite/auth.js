@@ -1,6 +1,6 @@
 import conf from '../conf/conf.js';
 import { Client, Account, ID } from "appwrite";
-
+import appwriteService from "./config.js";
 
 export class AuthService {
     client = new Client();
@@ -18,6 +18,8 @@ export class AuthService {
         try {
             const userAccount = await this.account.create(ID.unique(), email, password, name);
             if (userAccount) {
+                // Create profile in public database
+                await appwriteService.createProfile(userAccount.$id, name);
                 // call another method
                 return this.login({email, password});
             } else {

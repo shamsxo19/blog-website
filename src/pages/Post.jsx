@@ -9,6 +9,9 @@ export default function Post() {
     const [post, setPost] = useState(null);
     const [isFollowing, setIsFollowing] = useState(false);
     const [fetchedAuthorName, setFetchedAuthorName] = useState("");
+    const [comments, setComments] = useState([]);
+    const [newCommentText, setNewCommentText] = useState("");
+    const [isSubmittingComment, setIsSubmittingComment] = useState(false);
     const { slug } = useParams();
     const navigate = useNavigate();
 
@@ -20,7 +23,10 @@ export default function Post() {
     useEffect(() => {
         if (slug) {
             appwriteService.getPost(slug).then((post) => {
-                if (post) setPost(post);
+                if (post) {
+                    setPost(post);
+                    appwriteService.getComments(post.$id).then(res => setComments(res));
+                }
                 else navigate("/");
             });
         } else navigate("/");
@@ -52,6 +58,28 @@ export default function Post() {
         });
     };
 
+    const handleAddComment = async (e) => {
+        e.preventDefault();
+        if (!newCommentText.trim() || !userData) return;
+
+        setIsSubmittingComment(true);
+        try {
+            const comment = await appwriteService.addComment({
+                postId: post.$id,
+                userId: userData.$id,
+                userName: userData.name,
+                content: newCommentText.trim()
+            });
+
+            if (comment) {
+                setComments([comment, ...comments]);
+                setNewCommentText("");
+            }
+        } finally {
+            setIsSubmittingComment(false);
+        }
+    };
+
     return post ? (
         <div className="py-10">
             <Container>
@@ -80,11 +108,17 @@ export default function Post() {
                         <div>
                             <h1 className="text-3xl font-bold text-slate-900">{post.title}</h1>
                             {post.userId && (
-                                <div className="mt-2 text-sm text-slate-500">
-                                    Author:{" "}
-                                    <Link to={`/users/${post.userId}`} className="font-medium text-indigo-600 hover:text-indigo-700 hover:underline">
-                                        {authorName}
-                                    </Link>
+                                <div className="mt-2 text-sm text-slate-500 flex items-center gap-2 flex-wrap">
+                                    <span>
+                                        Author:{" "}
+                                        <Link to={`/users/${post.userId}`} className="font-medium text-indigo-600 hover:text-indigo-700 hover:underline">
+                                            {authorName}
+                                        </Link>
+                                    </span>
+                                    <span>&bull;</span>
+                                    <span>
+                                        Posted: <strong className="font-medium text-slate-700">{new Date(post.$createdAt).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric'})}</strong>
+                                    </span>
                                 </div>
                             )}
                         </div>
@@ -128,8 +162,64 @@ export default function Post() {
                             )}
                         </div>
                     </div>
-                    <div className="prose prose-slate max-w-none text-slate-700 leading-relaxed">
+                    <div className="prose prose-slate max-w-none text-slate-700 leading-relaxed mb-12">
                         {parse(post.content)}
+                    </div>
+
+                    <div className="border-t border-slate-200 pt-10">
+                        <h2 className="text-2xl font-bold text-slate-900 mb-6">Comments ({comments.length})</h2>
+                        
+                        {/* Comment Input Area */}
+                        <div className="mb-10 p-6 bg-slate-50 rounded-2xl border border-slate-100">
+                            {(!userData) ? (
+                                <p className="text-center text-slate-500 py-4">Login to jump into the conversation!</p>
+                            ) : (!isFollowing && !isAuthor) ? (
+                                <div className="text-center border border-indigo-100 bg-indigo-50/50 p-6 rounded-xl">
+                                    <h3 className="text-indigo-900 font-semibold mb-2">Exclusive Community</h3>
+                                    <p className="text-indigo-600 text-sm">Follow {" "} <strong className="font-semibold">{authorName}</strong> {" "} to unlock commenting on their posts!</p>
+                                </div>
+                            ) : (
+                                <form onSubmit={handleAddComment}>
+                                    <textarea
+                                        value={newCommentText}
+                                        onChange={(e) => setNewCommentText(e.target.value)}
+                                        rows="3"
+                                        className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none resize-none duration-200"
+                                        placeholder="Share your thoughts..."
+                                        disabled={isSubmittingComment}
+                                    />
+                                    <div className="mt-3 flex justify-end">
+                                        <Button type="submit" disabled={isSubmittingComment || !newCommentText.trim()}>
+                                            {isSubmittingComment ? "Posting..." : "Post Comment"}
+                                        </Button>
+                                    </div>
+                                </form>
+                            )}
+                        </div>
+
+                        {/* Comments List */}
+                        <div className="space-y-6">
+                            {comments.length === 0 ? (
+                                <p className="text-center text-slate-500 py-6 italic">No comments yet. Be the first!</p>
+                            ) : (
+                                comments.map((comment) => (
+                                    <div key={comment.$id} className="p-5 bg-white border border-slate-100 rounded-2xl shadow-sm animate-fade-in-up">
+                                        <div className="flex items-center justify-between mb-3">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-8 h-8 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold text-sm shrink-0">
+                                                    {comment.userName?.charAt(0)?.toUpperCase()}
+                                                </div>
+                                                <h4 className="font-semibold text-slate-800">{comment.userName}</h4>
+                                            </div>
+                                            <span className="text-xs text-slate-400 font-medium">
+                                                {new Date(comment.$createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })} at {new Date(comment.$createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                            </span>
+                                        </div>
+                                        <p className="text-slate-600 pl-11 text-sm leading-relaxed whitespace-pre-wrap">{comment.content}</p>
+                                    </div>
+                                ))
+                            )}
+                        </div>
                     </div>
                 </article>
             </Container>

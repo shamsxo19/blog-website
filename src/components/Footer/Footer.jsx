@@ -16,7 +16,7 @@ function Footer() {
                             </p>
                         </div>
                         <p className="text-xs text-slate-400">
-                            &copy; {new Date().getFullYear()} Megablog. All Rights Reserved.
+                            &copy; {new Date().getFullYear()} PostNest. All Rights Reserved.
                         </p>
                     </div>
                 </div>

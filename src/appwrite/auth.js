@@ -18,10 +18,11 @@ export class AuthService {
         try {
             const userAccount = await this.account.create(ID.unique(), email, password, name);
             if (userAccount) {
-                // Create profile in public database
+                // Login the user first so they have authentication permissions!
+                const session = await this.login({email, password});
+                // Once logged in, Create profile in public database
                 await appwriteService.createProfile(userAccount.$id, name);
-                // call another method
-                return this.login({email, password});
+                return session;
             } else {
                return  userAccount;
             }

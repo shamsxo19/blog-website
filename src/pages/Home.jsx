@@ -26,7 +26,7 @@ function Home() {
                             </svg>
                         </div>
                         <h1 className="text-2xl font-bold text-slate-800 mb-2">
-                            {authStatus ? "No posts yet" : "Welcome to Megablog"}
+                            {authStatus ? "No posts yet" : "Welcome to PostNest"}
                         </h1>
                         <p className="text-slate-500">
                             {authStatus ? "Be the first to create a post!" : "Login to start reading and writing posts."}

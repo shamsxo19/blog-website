@@ -137,6 +137,23 @@ export class Service {
         return this.getUserProfile(userId);
     }
 
+    async updateProfile(profileId, { aboutMe, profilePic }) {
+        try {
+            return await this.databases.updateDocument(
+                conf.appwriteDatabaseId,
+                conf.appwriteProfilesCollectionId,
+                profileId,
+                {
+                    aboutMe,
+                    profilePic
+                }
+            );
+        } catch (error) {
+            console.log("Appwrite service :: updateProfile :: error", error);
+            return false;
+        }
+    }
+
     async searchProfiles(searchTerm) {
         try {
             const term = searchTerm?.trim();
@@ -152,7 +169,7 @@ export class Service {
                 conf.appwriteDatabaseId,
                 conf.appwriteProfilesCollectionId,
                 [
-                    Query.search("name", term),
+                    Query.startsWith("name", term),
                     Query.limit(10),
                 ]
             );
@@ -273,6 +290,148 @@ export class Service {
         } catch (error) {
             console.log("Appwrite service :: getFollowStatus :: error", error);
             return false;
+        }
+    }
+
+    async getFollowerCount(followingId) {
+        try {
+            if (!followingId) return 0;
+            const follows = await this.databases.listDocuments(
+                conf.appwriteDatabaseId,
+                conf.appwriteFollowsCollectionId,
+                [
+                    Query.equal("followingId", followingId),
+                    Query.limit(1) // we only need the total count
+                ]
+            );
+            return follows.total;
+        } catch (error) {
+            console.log("Appwrite service :: getFollowerCount :: error", error);
+            return 0;
+        }
+    }
+
+    async getFollowingCount(followerId) {
+        try {
+            if (!followerId) return 0;
+            const follows = await this.databases.listDocuments(
+                conf.appwriteDatabaseId,
+                conf.appwriteFollowsCollectionId,
+                [
+                    Query.equal("followerId", followerId),
+                    Query.limit(1)
+                ]
+            );
+            return follows.total;
+        } catch (error) {
+            console.log("Appwrite service :: getFollowingCount :: error", error);
+            return 0;
+        }
+    }
+
+    async getFollowersList(userId) {
+        try {
+            // 1. Get all follow documents where followingId matches the target user
+            const follows = await this.databases.listDocuments(
+                conf.appwriteDatabaseId,
+                conf.appwriteFollowsCollectionId,
+                [
+                    Query.equal("followingId", userId),
+                    Query.limit(100)
+                ]
+            );
+
+            if (follows.total === 0) return [];
+
+            const followerIds = follows.documents.map(doc => doc.followerId);
+
+            // 2. Fetch profiles for all those followers
+            const profilesResp = await this.databases.listDocuments(
+                conf.appwriteDatabaseId,
+                conf.appwriteProfilesCollectionId,
+                [
+                    Query.equal("userId", followerIds),
+                    Query.limit(100)
+                ]
+            );
+
+            return profilesResp.documents;
+        } catch (error) {
+            console.log("Appwrite service :: getFollowersList :: error", error);
+            return [];
+        }
+    }
+
+    async getFollowingList(userId) {
+        try {
+            // 1. Get all follow documents where followerId matches the target user
+            const follows = await this.databases.listDocuments(
+                conf.appwriteDatabaseId,
+                conf.appwriteFollowsCollectionId,
+                [
+                    Query.equal("followerId", userId),
+                    Query.limit(100)
+                ]
+            );
+
+            if (follows.total === 0) return [];
+
+            const followingIds = follows.documents.map(doc => doc.followingId);
+
+            // 2. Fetch profiles for all those following targets
+            const profilesResp = await this.databases.listDocuments(
+                conf.appwriteDatabaseId,
+                conf.appwriteProfilesCollectionId,
+                [
+                    Query.equal("userId", followingIds),
+                    Query.limit(100)
+                ]
+            );
+
+            return profilesResp.documents;
+        } catch (error) {
+            console.log("Appwrite service :: getFollowingList :: error", error);
+            return [];
+        }
+    }
+
+    // comments service
+
+    async addComment({ postId, userId, userName, content }) {
+        try {
+            return await this.databases.createDocument(
+                conf.appwriteDatabaseId,
+                conf.appwriteCommentsCollectionId,
+                ID.unique(),
+                {
+                    postId,
+                    userId,
+                    userName,
+                    content
+                }
+            );
+        } catch (error) {
+            console.log("Appwrite service :: addComment :: error", error);
+            return false;
+        }
+    }
+
+    async getComments(postId) {
+        try {
+            if (!postId) return [];
+            const result = await this.databases.listDocuments(
+                conf.appwriteDatabaseId,
+                conf.appwriteCommentsCollectionId,
+                [
+                    Query.equal("postId", postId),
+                    Query.orderDesc("$createdAt"),
+                    Query.limit(50)
+                ]
+            );
+            return result.documents;
+        } catch (error) {
+            console.log("Appwrite service :: getComments :: error", error);
+            return [];
         }
     }
 

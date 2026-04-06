@@ -1,5 +1,6 @@
 import React, {useState, useEffect} from 'react'
 import { Container, PostCard } from '../components'
+import { Link } from 'react-router-dom';
 import appwriteService from "../appwrite/config";
 import { useSelector } from 'react-redux';
 
@@ -27,13 +28,15 @@ function AllPosts() {
             <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6'>
                 {posts.length === 0 && (
                     <div className="col-span-full text-center py-12 animate-fade-in-up">
-                        <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-indigo-50 flex items-center justify-center">
-                            <svg className="w-8 h-8 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                            </svg>
-                        </div>
-                        <p className="text-xl font-medium text-slate-700">You have no posts yet.</p>
-                        <p className="text-sm text-slate-500 mt-2">Create your first post to get started!</p>
+                        <Link to="/add-post" className="block w-full max-w-sm mx-auto p-6 rounded-3xl border-2 border-dashed border-indigo-200 bg-indigo-50/50 hover:bg-indigo-50 transition-colors cursor-pointer group">
+                            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-indigo-100 flex items-center justify-center group-hover:scale-110 transition-transform">
+                                <svg className="w-8 h-8 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                                </svg>
+                            </div>
+                            <p className="text-xl font-medium text-slate-700 group-hover:text-indigo-700 transition-colors">You have no posts yet.</p>
+                            <p className="text-sm text-slate-500 mt-2">Click here to create your first post!</p>
+                        </Link>
                     </div>
                 )}
                 {posts.map((post, index) => (

@@ -6,6 +6,7 @@ import { useNavigate, useLocation } from 'react-router-dom'
 
 function Header() {
   const authStatus = useSelector((state) => state.auth.status)
+  const userData = useSelector((state) => state.auth.userData)
   const navigate = useNavigate()
   const location = useLocation()
 
@@ -25,11 +26,7 @@ function Header() {
       slug: "/signup",
       active: !authStatus,
     },
-    {
-      name: "All Posts",
-      slug: "/all-posts",
-      active: authStatus,
-    },
+    
     {
       name: "Search Users",
       slug: "/search-users",
@@ -38,6 +35,16 @@ function Header() {
     {
       name: "Add Post",
       slug: "/add-post",
+      active: authStatus,
+    },
+    {
+      name: "All Posts",
+      slug: "/all-posts",
+      active: authStatus,
+    },
+    {
+      name: "My Profile",
+      slug: userData ? `/users/${userData.$id}` : "#",
       active: authStatus,
     },
   ]

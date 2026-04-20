@@ -22,6 +22,11 @@ function Header() {
       active: !authStatus,
     },
     {
+      name: "Explore",
+      slug: "/explore",
+      active: true, // Let anyone explore public posts
+    },
+    {
       name: "Signup",
       slug: "/signup",
       active: !authStatus,

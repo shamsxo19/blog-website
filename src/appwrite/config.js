@@ -14,7 +14,7 @@ export class Service {
         this.bucket = new Storage(this.client);
     }
 
-    async createPost({ title, slug, content, featuredImage, status, userId, authorName }) {
+    async createPost({ title, slug, content, featuredImage, status, userId, authorName, visibility = "public" }) {
         try {
             return await this.databases.createDocument(
                 conf.appwriteDatabaseId,
@@ -27,6 +27,7 @@ export class Service {
                     status,
                     userId,
                     authorName,
+                    visibility,
                 }
             )
         } catch (error) {
@@ -34,7 +35,7 @@ export class Service {
         }
     }
 
-    async updatePost(slug, { title, content, featuredImage, status }) {
+    async updatePost(slug, { title, content, featuredImage, status, visibility }) {
         try {
             return await this.databases.updateDocument(
                 conf.appwriteDatabaseId,
@@ -45,7 +46,7 @@ export class Service {
                     content,
                     featuredImage,
                     status,
-
+                    visibility,
                 }
             )
         } catch (error) {
@@ -88,12 +89,84 @@ export class Service {
                 conf.appwriteDatabaseId,
                 conf.appwriteCollectionId,
                 queries,
-
-
             )
         } catch (error) {
             console.log("Appwrite serive :: getPosts :: error", error);
             return false
+        }
+    }
+
+    async getPublicPosts(limit = 25) {
+        try {
+            return await this.databases.listDocuments(
+                conf.appwriteDatabaseId,
+                conf.appwriteCollectionId,
+                [
+                    Query.equal("status", "active"),
+                    Query.equal("visibility", "public"),
+                    Query.orderDesc("$createdAt"),
+                    Query.limit(limit),
+                ]
+            );
+        } catch (error) {
+            console.log("Appwrite service :: getPublicPosts :: error", error);
+            return { total: 0, documents: [] };
+        }
+    }
+
+    async searchPostsByTitle(searchTerm) {
+        try {
+            const term = searchTerm?.trim();
+            if (!term) return { total: 0, documents: [] };
+
+            return await this.databases.listDocuments(
+                conf.appwriteDatabaseId,
+                conf.appwriteCollectionId,
+                [
+                    Query.equal("status", "active"),
+                    Query.equal("visibility", "public"),
+                    Query.search("title", term),
+                    Query.limit(25),
+                ]
+            );
+        } catch (error) {
+            console.log("Appwrite service :: searchPostsByTitle :: error", error);
+            return { total: 0, documents: [] };
+        }
+    }
+
+    async getFollowingFeedPosts(currentUserId) {
+        try {
+            if (!currentUserId) return { total: 0, documents: [] };
+
+            // 1. Get list of users this person follows
+            const follows = await this.databases.listDocuments(
+                conf.appwriteDatabaseId,
+                conf.appwriteFollowsCollectionId,
+                [
+                    Query.equal("followerId", currentUserId),
+                    Query.limit(100)
+                ]
+            );
+
+            if (follows.total === 0) return { total: 0, documents: [] };
+
+            const followingIds = follows.documents.map(doc => doc.followingId);
+
+            // 2. Fetch active posts from those users
+            return await this.databases.listDocuments(
+                conf.appwriteDatabaseId,
+                conf.appwriteCollectionId,
+                [
+                    Query.equal("userId", followingIds),
+                    Query.equal("status", "active"),
+                    Query.orderDesc("$createdAt"),
+                    Query.limit(50)
+                ]
+            );
+        } catch (error) {
+            console.log("Appwrite service :: getFollowingFeedPosts :: error", error);
+            return { total: 0, documents: [] };
         }
     }
 
@@ -182,7 +255,7 @@ export class Service {
         }
     }
 
-    async getPostsByUser(userId, status = "active") {
+    async getPostsByUser(userId, status = "active", viewerIsFollower = false) {
         try {
             if (!userId) {
                 return {
@@ -195,6 +268,12 @@ export class Service {
 
             if (status) {
                 queries.push(Query.equal("status", status));
+            }
+
+            // If the viewer is not a follower (and it's not their own profile),
+            // only show public posts
+            if (!viewerIsFollower && status === "active") {
+                queries.push(Query.equal("visibility", "public"));
             }
 
             queries.push(Query.orderDesc("$createdAt"));

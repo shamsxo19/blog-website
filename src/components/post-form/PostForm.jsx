@@ -12,6 +12,7 @@ export default function PostForm({ post }) {
             slug: post?.$id || "",
             content: post?.content || "",
             status: post?.status || "active",
+            visibility: post?.visibility || "public",
         },
     });
 
@@ -116,6 +117,15 @@ export default function PostForm({ post }) {
                         label="Status"
                         {...register("status", { required: true })}
                     />
+                    <Select
+                        options={["public", "private"]}
+                        label="Visibility"
+                        {...register("visibility", { required: true })}
+                    />
+                    <div className="text-xs text-slate-500 mb-4 px-1">
+                        🌍 <strong>Public</strong>: Visible to everyone on the Explore page.<br />
+                        🔒 <strong>Private</strong>: Visible only to your followers.
+                    </div>
                     <Button type="submit" bgColor={post ? "bg-emerald-600" : "bg-slate-800"} className="w-full">
                         {post ? "Update Post" : "Publish Post"}
                     </Button>

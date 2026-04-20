@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams, Navigate } from "react-router-dom";
 import appwriteService from "../appwrite/config";
 import { Button, Container } from "../components";
 import parse from "html-react-parser";
@@ -80,6 +80,49 @@ export default function Post() {
         }
     };
 
+    // Private Post Access Control
+    const isPrivate = post?.visibility === 'private';
+    const canViewPost = !isPrivate || isAuthor || isFollowing;
+
+    if (post && !canViewPost) {
+        return (
+            <div className="py-20 text-center">
+                <Container>
+                    <div className="max-w-md mx-auto p-8 bg-white rounded-3xl border border-slate-100 shadow-sm">
+                        <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-slate-100 flex items-center justify-center">
+                            <svg className="w-10 h-10 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                            </svg>
+                        </div>
+                        <h1 className="text-2xl font-bold text-slate-900 mb-3">This post is private</h1>
+                        <p className="text-slate-500 mb-8 leading-relaxed">
+                            <strong className="font-medium text-slate-700">{authorName}</strong> has made this post strictly visible to their followers only.
+                        </p>
+                        
+                        {userData ? (
+                            <button
+                                onClick={async () => {
+                                    const res = await appwriteService.toggleFollow(userData.$id, post.userId);
+                                    if (res) setIsFollowing(res.status === "followed");
+                                }}
+                                className="w-full py-3.5 bg-indigo-600 text-white font-medium rounded-xl hover:bg-indigo-700 transition duration-200 shadow-sm"
+                            >
+                                Follow {authorName} to unlock
+                            </button>
+                        ) : (
+                            <Link to="/login" className="block w-full py-3.5 bg-slate-900 text-white font-medium rounded-xl hover:bg-slate-800 transition duration-200">
+                                Login to follow and read
+                            </Link>
+                        )}
+                        <Link to="/" className="inline-block mt-6 text-sm font-medium text-slate-500 hover:text-slate-800 transition-colors">
+                            Return to safety
+                        </Link>
+                    </div>
+                </Container>
+            </div>
+        );
+    }
+
     return post ? (
         <div className="py-10">
             <Container>
@@ -106,6 +149,23 @@ export default function Post() {
                     </div>
                     <div className="mb-4 flex items-center justify-between">
                         <div>
+                            <div className="flex items-center gap-3 mb-2">
+                                {isPrivate ? (
+                                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100/80 text-slate-600 text-xs font-semibold border border-slate-200">
+                                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                                        </svg>
+                                        Private
+                                    </span>
+                                ) : (
+                                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-emerald-600 text-xs font-semibold border border-emerald-100">
+                                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                        Public
+                                    </span>
+                                )}
+                            </div>
                             <h1 className="text-3xl font-bold text-slate-900">{post.title}</h1>
                             {post.userId && (
                                 <div className="mt-2 text-sm text-slate-500 flex items-center gap-2 flex-wrap">

@@ -2,18 +2,24 @@ import React, {useEffect, useState} from 'react'
 import appwriteService from "../appwrite/config";
 import {Container, PostCard} from '../components'
 import { useSelector } from 'react-redux'
+import { Link } from 'react-router-dom';
 
 function Home() {
     const [posts, setPosts] = useState([])
     const authStatus = useSelector((state) => state.auth.status)
+    const userData = useSelector((state) => state.auth.userData)
 
     useEffect(() => {
-        appwriteService.getPosts().then((posts) => {
-            if (posts) {
-                setPosts(posts.documents)
-            }
-        })
-    }, [])
+        if (!authStatus) return; // Wait until auth state is resolved
+        const currentUserId = authStatus ? userData?.$id : null;
+        if (currentUserId) {
+            appwriteService.getFollowingFeedPosts(currentUserId).then((postsResponse) => {
+                if (postsResponse) {
+                    setPosts(postsResponse.documents);
+                }
+            });
+        }
+    }, [authStatus, userData?.$id]);
   
     if (posts.length === 0) {
         return (
@@ -26,11 +32,16 @@ function Home() {
                             </svg>
                         </div>
                         <h1 className="text-2xl font-bold text-slate-800 mb-2">
-                            {authStatus ? "No posts yet" : "Welcome to PostNest"}
+                            {!authStatus ? "Welcome to PostNest" : "Your feed is empty"}
                         </h1>
-                        <p className="text-slate-500">
-                            {authStatus ? "Be the first to create a post!" : "Login to start reading and writing posts."}
+                        <p className="text-slate-500 mb-6">
+                            {!authStatus ? "Login to start reading and writing posts." : "Follow amazing authors to build your personalized feed."}
                         </p>
+                        {authStatus && (
+                            <Link to="/explore" className="inline-block px-6 py-3 bg-indigo-600 text-white font-medium rounded-xl hover:bg-indigo-700 transition-colors shadow-sm">
+                                Explore Public Posts
+                            </Link>
+                        )}
                     </div>
                 </Container>
             </div>

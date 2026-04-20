@@ -16,6 +16,7 @@ import Post from "./pages/Post";
 import AllPosts from "./pages/AllPosts";
 import SearchUsers from "./pages/SearchUsers";
 import UserProfile from "./pages/UserProfile";
+import Explore from "./pages/Explore";
 
 const router = createBrowserRouter([
     {
@@ -28,6 +29,12 @@ const router = createBrowserRouter([
                     <AuthLayout authentication>
                         <Home />
                     </AuthLayout>
+                ),
+            },
+            {
+                path: "/explore",
+                element: (
+                    <Explore />
                 ),
             },
             {

@@ -33,9 +33,15 @@ function UserProfile() {
             setIsLoading(true);
 
             try {
+                let currentIsFollowing = false;
+                if (currentUser && !isOwnProfile) {
+                    currentIsFollowing = await appwriteService.getFollowStatus(currentUser.$id, userId);
+                    setIsFollowing(currentIsFollowing);
+                }
+
                 const [profileResponse, postsResponse, followerCountResponse, followingCountResp] = await Promise.all([
                     appwriteService.getProfileByUserId(userId),
-                    appwriteService.getPostsByUser(userId, isOwnProfile ? null : "active"),
+                    appwriteService.getPostsByUser(userId, isOwnProfile ? null : "active", currentIsFollowing),
                     appwriteService.getFollowerCount(userId),
                     appwriteService.getFollowingCount(userId)
                 ]);
@@ -66,16 +72,7 @@ function UserProfile() {
         };
     }, [userId, isOwnProfile]);
 
-    useEffect(() => {
-        if (!currentUser || !userId || isOwnProfile) {
-            setIsFollowing(false);
-            return;
-        }
-
-        appwriteService.getFollowStatus(currentUser.$id, userId).then((status) => {
-            setIsFollowing(status);
-        });
-    }, [currentUser, userId, isOwnProfile]);
+    // isFollowing is now handled inside loadProfile
 
     const handleFollowToggle = async () => {
         if (!currentUser || isOwnProfile) {

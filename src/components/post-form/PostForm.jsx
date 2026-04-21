@@ -126,7 +126,7 @@ export default function PostForm({ post }) {
                         🌍 <strong>Public</strong>: Visible to everyone on the Explore page.<br />
                         🔒 <strong>Private</strong>: Visible only to your followers.
                     </div>
-                    <Button type="submit" bgColor={post ? "bg-emerald-600" : "bg-slate-800"} className="w-full">
+                    <Button type="submit" variant={post ? "success" : "primary"} className="w-full">
                         {post ? "Update Post" : "Publish Post"}
                     </Button>
                 </div>

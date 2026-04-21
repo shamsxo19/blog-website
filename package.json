@@ -10,15 +10,22 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@radix-ui/react-aspect-ratio": "^1.1.8",
+    "@radix-ui/react-slot": "^1.2.4",
     "@reduxjs/toolkit": "^1.9.5",
     "@tinymce/tinymce-react": "^4.3.0",
     "appwrite": "^24.1.1",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "framer-motion": "^12.38.0",
     "html-react-parser": "^4.2.2",
+    "lucide-react": "^1.8.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-hook-form": "^7.46.1",
     "react-redux": "^8.1.2",
-    "react-router-dom": "^6.16.0"
+    "react-router-dom": "^6.16.0",
+    "tailwind-merge": "^3.5.0"
   },
   "devDependencies": {
     "@types/react": "^18.2.15",

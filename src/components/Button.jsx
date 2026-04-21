@@ -3,14 +3,20 @@ import React from "react";
 export default function Button({
     children,
     type = "button",
-    bgColor = "bg-slate-800",
-    textColor = "text-white",
+    variant = "primary",
     className = "",
     ...props
 }) {
+    const variantClasses = {
+        primary: "btn-primary",
+        secondary: "btn-secondary",
+        danger: "btn-danger",
+        success: "btn-success"
+    };
+
     return (
         <button 
-            className={`px-5 py-2.5 rounded-lg font-medium transition-all duration-200 ease-in-out hover:opacity-90 active:scale-[0.98] ${bgColor} ${textColor} ${className}`} 
+            className={`${variantClasses[variant] || variantClasses.primary} ${className}`} 
             type={type}
             {...props}
         >

@@ -206,15 +206,14 @@ function UserProfile() {
 
                             <div className="shrink-0 flex gap-3">
                                 {isOwnProfile && currentUser && !isEditing && (
-                                    <Button onClick={() => setIsEditing(true)} bgColor="bg-slate-100 hover:bg-slate-200" textColor="text-slate-700">
+                                    <Button onClick={() => setIsEditing(true)} variant="secondary">
                                         Edit Profile
                                     </Button>
                                 )}
                                 {!isOwnProfile && currentUser && (
                                     <Button
                                         onClick={handleFollowToggle}
-                                        bgColor={isFollowing ? "bg-slate-200 hover:bg-slate-300" : "bg-indigo-600 hover:bg-indigo-700"}
-                                        textColor={isFollowing ? "text-slate-800" : "text-white"}
+                                        variant={isFollowing ? "secondary" : "primary"}
                                     >
                                         {isFollowing ? "Following" : "Follow Author"}
                                     </Button>
@@ -246,10 +245,10 @@ function UserProfile() {
                                         />
                                     </div>
                                     <div className="flex items-center gap-3 pt-2">
-                                        <Button onClick={handleSaveProfile} disabled={isSaving}>
+                                        <Button onClick={handleSaveProfile} disabled={isSaving} variant="primary">
                                             {isSaving ? "Saving..." : "Save Changes"}
                                         </Button>
-                                        <Button onClick={() => setIsEditing(false)} bgColor="bg-slate-100" textColor="text-slate-700" disabled={isSaving}>
+                                        <Button onClick={() => setIsEditing(false)} variant="secondary" disabled={isSaving}>
                                             Cancel
                                         </Button>
                                     </div>
